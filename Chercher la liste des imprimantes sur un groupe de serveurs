@@ -1,0 +1,49 @@
+Principe
+
+Liste des serveurs dans servers.txt
+
+On récupère les imprimantes avec WMI (Win32_Printer)
+
+On exporte tout dans un CSV
+
+Toutes nos formations sur https://itfit.tech
+
+Script : Get-PrintersOnServers.ps1
+
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$ServersListPath,      # ex: .\servers.txt
+
+    [Parameter(Mandatory = $true)]
+    [string]$OutputCsvPath         # ex: .\Printers.csv
+)
+
+$servers = Get-Content -Path $ServersListPath
+$results = @()
+
+foreach ($server in $servers) {
+    Write-Host "Récupération des imprimantes sur $server..."
+
+    try {
+        $printers = Get-WmiObject -Class Win32_Printer -ComputerName $server -ErrorAction Stop
+
+        foreach ($printer in $printers) {
+            $results += [PSCustomObject]@{
+                Server        = $server
+                Name          = $printer.Name
+                ShareName     = $printer.ShareName
+                DriverName    = $printer.DriverName
+                PortName      = $printer.PortName
+                Default       = $printer.Default
+                Network       = $printer.Network
+                Shared        = $printer.Shared
+            }
+        }
+    }
+    catch {
+        Write-Host "  -> Erreur sur $server : $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+$results | Export-Csv -Path $OutputCsvPath -NoTypeInformation -Encoding UTF8
+Write-Host "Export terminé : $OutputCsvPath"
