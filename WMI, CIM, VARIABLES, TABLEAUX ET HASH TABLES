@@ -1,0 +1,216 @@
+VERSION COMPLÈTE POUR GITHUB : LABS WMI, CIM, VARIABLES, TABLEAUX ET HASH TABLES
+
+👉 Formations IT professionnelles : https://itfit.tech
+
+👉 PowerShell, Azure, Microsoft 365, Automatisation : https://itfit.tech
+
+# Labs PowerShell – WMI, CIM, Variables, Tableaux et HashTables  
+👉 Découvrez mes formations IT (PowerShell, Azure, M365) : https://itfit.tech  
+
+---
+
+# 🧪 Exercice 1 : Interroger des informations avec WMI
+
+## 🎯 Tâche 1 : Interroger les adresses IP
+
+1. Sur **LAB-WS01**, ouvrir *Windows PowerShell* en administrateur.
+2. Rechercher une classe listant la configuration réseau :
+
+```powershell
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*configuration*' | Sort Name
+
+
+Afficher les interfaces configurées en IP statique :
+
+Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Where DHCPEnabled -eq $False | Select IPAddress
+
+🎯 Tâche 2 : Version du système d’exploitation
+
+Afficher les classes OS :
+
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*operating*' | Sort Name
+
+
+Lister les propriétés disponibles :
+
+Get-WmiObject -Class Win32_OperatingSystem | Get-Member
+
+
+Afficher version, SP et build :
+
+Get-WmiObject -Class Win32_OperatingSystem | Select Version,ServicePackMajorVersion,BuildNumber
+
+🎯 Tâche 3 : Informations matérielles du système
+
+Trouver les classes matérielles :
+
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*system*' | Sort Name
+
+
+Afficher toutes les propriétés :
+
+Get-WmiObject -Class Win32_ComputerSystem | Format-List -Property *
+
+
+Afficher fabricant, modèle et RAM :
+
+Get-WmiObject -Class Win32_ComputerSystem | Select Manufacturer,Model,@{n='RAM';e={$PSItem.TotalPhysicalMemory}}
+
+🎯 Tâche 4 : Informations sur les services
+
+Rechercher les classes services :
+
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*service*' | Sort Name
+
+
+Afficher toutes les propriétés :
+
+Get-WmiObject -Class Win32_Service | FL *
+
+
+Afficher les services commençant par "S" :
+
+Get-WmiObject -Class Win32_Service -Filter "Name LIKE 'S%'" | Select Name,State,StartName
+
+🧪 Exercice 2 : Interroger des informations avec CIM
+🎯 Tâche 1 : Comptes utilisateurs
+
+Trouver les classes utilisateurs :
+
+Get-CimClass -ClassName *user*
+
+
+Lister les propriétés :
+
+Get-CimInstance -Class Win32_UserAccount | Get-Member
+
+
+Afficher les données utilisateurs :
+
+Get-CimInstance -Class Win32_UserAccount | Format-Table Caption,Domain,SID,FullName,Name
+
+🎯 Tâche 2 : Informations BIOS
+
+Trouver la classe BIOS :
+
+Get-CimClass -ClassName *bios*
+
+
+Afficher les informations BIOS :
+
+Get-CimInstance -Class Win32_BIOS
+
+🎯 Tâche 3 : Configuration réseau locale et distante
+
+Afficher localement :
+
+Get-CimInstance -Classname Win32_NetworkAdapterConfiguration
+
+
+Afficher depuis LAB-DC01 :
+
+Get-CimInstance -Classname Win32_NetworkAdapterConfiguration -ComputerName LAB-DC01
+
+🎯 Tâche 4 : Groupes utilisateurs
+
+Trouver la classe groupes :
+
+Get-CimClass -ClassName *group*
+
+
+Afficher les groupes sur LAB-DC01 :
+
+Get-CimInstance -ClassName Win32_Group -ComputerName LAB-DC01
+
+🧪 Exercice 3 : Invocation de méthodes
+🎯 Tâche 1 : Reboot d’une machine avec CIM
+
+Redémarrer LAB-DC01 :
+
+Invoke-CimMethod -ClassName Win32_OperatingSystem -ComputerName LAB-DC01 -MethodName Reboot
+
+🎯 Tâche 2 : Modifier un service avec WMI
+
+Afficher les propriétés du service WinRM :
+
+Get-Service WinRM | FL *
+
+
+Changer le mode de démarrage :
+
+Get-WmiObject -Class Win32_Service -Filter "Name='WinRM'" | Invoke-WmiMethod -Name ChangeStartMode -Argument 'Automatic'
+
+
+Vérifier :
+
+Get-Service WinRM | FL *
+
+🧪 Exercice 4 : Variables, Tableaux et Hash Tables en PowerShell
+🎯 Tâche 1 : Variables string
+$logPath = "C:\Logs\"
+$logPath.GetType()
+$logPath | Get-Member
+
+$logFile = "log.txt"
+$logPath += $logFile
+$logPath
+
+$logPath = $logPath.Replace("C:","D:")
+$logPath
+
+🎯 Tâche 2 : DateTime
+$today = Get-Date
+$today.GetType()
+$today | Get-Member
+
+$logFile = "$($today.Year)-$($today.Month)-$($today.Day)-$($today.Hour)-$($today.Minute).txt"
+
+$cutOffDate = $today.AddDays(-30)
+
+Get-ADUser -Properties LastLogonDate -Filter {LastLogonDate -gt $cutOffDate}
+
+🧪 Exercice 5 : Tableaux (Arrays)
+🎯 Tâche 1 : Mettre à jour un département
+$mktgUsers = Get-ADUser -Filter {Department -eq "Marketing"} -Properties Department
+$mktgUsers.count
+$mktgUsers[0]
+
+$mktgUsers | Set-ADUser -Department "Business Development"
+
+$mktgUsers | Format-Table Name,Department
+
+Get-ADUser -Filter {Department -eq "Marketing"}
+Get-ADUser -Filter {Department -eq "Business Development"}
+
+🎯 Tâche 2 : ArrayList
+[System.Collections.ArrayList]$computers="LAB-SRV11","LAB-SRV22","LAB-DC01"
+
+$computers.IsFixedSize
+
+$computers.Add("LAB-DC02")
+$computers.Remove("LAB-SRV22")
+
+$computers
+
+🧪 Exercice 6 : Hash Tables
+$mailList=@{
+    "Frank"="Frank@fabriakm.com";
+    "Libby"="LHayward@itfit.com";
+    "Matej"="MSTaojanov@tailspintoys.com"
+}
+
+$mailList
+$mailList.Libby
+
+$mailList.Libby="Libby.Hayward@itfit.com"
+
+$mailList.Add("Stela","Stela.Sahiti")
+$mailList.Remove("Frank")
+
+$mailList
+
+📚 Ressources complémentaires
+
+➡ Formations PowerShell, Azure, Microsoft 365 : https://itfit.tech
+
+➡ Vidéos + labs + support formateur : https://itfit.tech
