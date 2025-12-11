@@ -1,0 +1,168 @@
+Exercise 1 – Preparing your environment and installing Az PowerShell module
+Task 1 – Open the Azure portal
+
+Launch Microsoft Edge.
+
+Navigate to:
+
+https://portal.azure.com
+
+
+Sign in with the Azure account assigned to your training environment.
+
+If Azure proposes a guided tour, select Skip.
+
+Task 2 – Install the Az module for PowerShell
+
+Open PowerShell 7 (pwsh) as Administrator.
+
+Check the version:
+
+$PSVersionTable.PSVersion
+
+
+Update PowerShell 7 to the latest version:
+
+iex "& { $(irm https://aka.ms/install-powershell.ps1) }"
+
+
+Restart PowerShell automatically:
+
+Start-Process pwsh -Verb RunAs
+exit
+
+
+Set the execution policy:
+
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+
+Confirm with Y.
+
+Install the Az module:
+
+Install-Module Az -Scope CurrentUser -Force
+
+
+Connect to Azure:
+
+Connect-AzAccount
+
+
+Verify that your subscription appears:
+
+Get-AzContext
+
+🧪 Exercise 2 – Using Azure Cloud Shell
+Task 1 – Create a resource group from Cloud Shell
+
+In the Azure portal, open Cloud Shell.
+
+Choose PowerShell mode.
+
+Allow Azure to create the storage backend.
+
+Once Cloud Shell is ready, run:
+
+Get-AzSubscription
+
+
+View existing resource groups:
+
+Get-AzResourceGroup
+
+
+Switch to Bash inside Cloud Shell:
+
+az group list
+az account show
+
+
+Return to PowerShell:
+
+New-AzResourceGroup -Name RG-Training-Europe -Location northeurope
+
+
+Confirm:
+
+Get-AzResourceGroup -Name RG-Training-Europe
+
+🧪 Exercise 3 – Deploying and managing Azure resources with PowerShell
+Task 1 – Create a Virtual Machine (new example, new names)
+
+Generate credentials for the VM OS:
+
+$cred = Get-Credential -Message "Enter admin username and password for VM Training01"
+
+
+Define VM parameters:
+
+$vmConfig = @{
+    ResourceGroupName     = "RG-Training-Europe"
+    Name                  = "VM-Training01"
+    Location              = "northeurope"
+    ImageName             = "Ubuntu2204"
+    PublicIpAddressName   = "IP-Training01"
+    Credential            = $cred
+    Size                  = "Standard_B1ms"
+    OpenPorts             = 22
+}
+
+
+Deploy the VM:
+
+$vm = New-AzVM @vmConfig
+
+
+Display important details:
+
+$vm
+$vm.OSProfile | Select-Object ComputerName, AdminUsername
+
+
+Retrieve private and public IP addresses:
+
+Get-AzNetworkInterface -ResourceGroupName "RG-Training-Europe" |
+Select-Object -ExpandProperty IpConfigurations |
+Select-Object Name, PrivateIpAddress
+
+$pub = Get-AzPublicIpAddress -Name "IP-Training01" -ResourceGroupName "RG-Training-Europe"
+$pub | Select-Object IpAddress, @{n="DNS";e={$_.DnsSettings.Fqdn}}
+
+
+Connect via SSH (Linux example):
+
+ssh <your-admin>@$($pub.IpAddress)
+
+Task 2 – Add a new disk to the VM
+
+Get the VM object:
+
+$vmObj = Get-AzVM -ResourceGroupName "RG-Training-Europe" -Name "VM-Training01"
+
+
+Add a 10 GB data disk:
+
+Add-AzVMDataDisk -VM $vmObj -Name "TrainingDisk01" -LUN 1 -DiskSizeInGB 10 -CreateOption Empty -Caching ReadWrite
+
+
+Update the VM:
+
+Update-AzVM -VM $vmObj -ResourceGroupName "RG-Training-Europe"
+
+Task 3 – Clean up Azure resources
+
+Delete the entire resource group and all resources:
+
+Remove-AzResourceGroup -Name "RG-Training-Europe" -Force
+
+🎉 LAB COMPLETED
+
+You have learned how to:
+
+✔ Install and configure the Az PowerShell module
+✔ Use Azure Cloud Shell in both PowerShell and Bash
+✔ Deploy a Linux VM using PowerShell
+✔ Retrieve network configuration
+✔ Add additional disks to a VM
+✔ Remove all resources using a single cleanup operation
