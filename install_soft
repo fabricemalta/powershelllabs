@@ -1,0 +1,29 @@
+Pour installer des logiciels à distance avec PowerShell, on utilise généralement WinRM (Windows Remote Management) ou PSExec. Voici un exemple simple basé sur PowerShell Remoting :
+
+
+# Liste des machines cibles
+$computers = @("PC01","PC02","PC03")
+
+# Chemin du logiciel à installer (exemple MSI)
+$installerPath = "\\Serveur\Partage\Logiciels\setup.msi"
+
+# Commande d’installation silencieuse
+$arguments = "/i `"$installerPath`" /quiet /norestart"
+
+# Boucle sur chaque machine
+foreach ($computer in $computers) {
+    Invoke-Command -ComputerName $computer -ScriptBlock {
+        param($arguments)
+        Start-Process "msiexec.exe" -ArgumentList $arguments -Wait -NoNewWindow
+    } -ArgumentList $arguments -Credential (Get-Credential)
+}
+
+
+Explications rapides :
+- Invoke-Command permet d’exécuter des commandes sur des machines distantes (WinRM doit être activé).
+- Start-Process "msiexec.exe" lance l’installation du package MSI en mode silencieux.
+- -Credential (Get-Credential) te demandera un compte admin valide sur les machines distantes.
+- Le chemin du logiciel doit être accessible par toutes les machines (exemple : un partage réseau).
+👉 Si tu veux installer des .exe avec des arguments spécifiques, il suffit de remplacer la ligne Start-Process par la commande adaptée.
+
+
