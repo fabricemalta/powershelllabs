@@ -61,9 +61,9 @@ C’est un espace évolutif : de nouveaux scripts seront ajoutés régulièremen
 💡 Formations vidéo, labs complets, parcours certifiants :  
 https://itfit.tech
 
-📺 Chaîne YouTube avec contenus gratuits : *(ajouter si tu veux ton lien YouTube)*  
+📺 Chaîne YouTube avec contenus gratuits : (https://www.youtube.com/@fitit6402)
 
-📬 Pour toute question ou collaboration : *(ajouter ton email si tu veux)*  
+📬 Pour toute question ou collaboration : *fabrice@fluctuationit.com*  
 
 ---
 
