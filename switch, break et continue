@@ -1,0 +1,91 @@
+🟦 1. Exemple simple de switch
+$jour = "Lundi"
+
+switch ($jour) {
+    "Lundi"   { "Début de semaine" }
+    "Vendredi" { "Bientôt le week-end" }
+    "Samedi"  { "Weekend !" }
+    "Dimanche" { "Repos" }
+    Default   { "Jour inconnu" }
+}
+
+🟦 2. switch avec plusieurs valeurs possibles
+$note = 15
+
+switch ($note) {
+    { $_ -ge 16 } { "Très bien" }
+    { $_ -ge 12 } { "Bien" }
+    { $_ -ge 10 } { "Passable" }
+    default       { "Insuffisant" }
+}
+
+
+Ici $_ représente la valeur en cours de traitement.
+
+🟦 3. switch sur un tableau
+$numbers = 1,2,3,4,5
+
+switch ($numbers) {
+    1 { "One" }
+    2 { "Two" }
+    3 { "Three" }
+    default { "Autre nombre" }
+}
+
+🟦 4. Utilisation de break
+
+break permet de sortir immédiatement du switch (ou d’une boucle).
+
+$animal = "chat"
+
+switch ($animal) {
+    "chien" { "C'est un chien"; break }
+    "chat"  { "C'est un chat"; break }
+    default { "Inconnu" }
+}
+
+
+Dès que PowerShell trouve "chat", il exécute l'action puis arrête le switch.
+
+🟦 5. Exemple continue dans un switch (moins courant)
+
+continue sert à passer à la prochaine valeur du switch.
+
+$liste = "a","b","c"
+
+switch ($liste) {
+    "a" { "Lettre A trouvée"; continue }
+    "b" { "Lettre B trouvée"; continue }
+    "c" { "Lettre C trouvée"; continue }
+}
+
+
+PowerShell lit chaque élément du tableau et continue automatiquement, mais l’exemple montre l’utilisation.
+
+🟦 6. Exemple utile : filtrer des nombres pairs / impairs en utilisant continue et break
+$nums = 1..10
+
+foreach ($n in $nums) {
+    switch ($n) {
+        { $_ -eq 5 } { "On s'arrête !"; break }      # stop tout
+        { $_ % 2 -eq 0 } { "$_ est pair"; continue }
+        default { "$_ est impair" }
+    }
+}
+
+🟦 7. Exemple avancé avec plusieurs actions
+$commande = "start"
+
+switch ($commande) {
+    "start" {
+        "Démarrage..."
+        continue   # passe au prochain test (si plusieurs)
+    }
+    "stop" {
+        "Arrêt..."
+        break      # sort du switch
+    }
+    default {
+        "Commande inconnue"
+    }
+}
