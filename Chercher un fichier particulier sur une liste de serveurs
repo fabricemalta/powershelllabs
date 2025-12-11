@@ -1,0 +1,49 @@
+Principe
+Un fichier servers.txt contient un serveur par ligne
+On cherche un chemin précis (ex: C:\Temp\rapport.log)
+Si le fichier existe sur le serveur, on écrit dans un log
+
+toutes nos formations sur notre site https://itfit.tech
+
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$ServersListPath,          # ex: .\servers.txt
+
+    [Parameter(Mandatory = $true)]
+    [string]$RemoteFilePath,           # ex: C:\Temp\rapport.log
+
+    [Parameter(Mandatory = $true)]
+    [string]$LogPath                   # ex: .\FileFound.log
+)
+
+# On nettoie l'ancien log si besoin
+if (Test-Path $LogPath) {
+    Remove-Item $LogPath -Force
+}
+
+$servers = Get-Content -Path $ServersListPath
+
+foreach ($server in $servers) {
+    Write-Host "Vérification sur $server..." 
+
+    try {
+        # On va tester via une session distante (WinRM)
+        $exists = Invoke-Command -ComputerName $server -ScriptBlock {
+            param($path)
+            Test-Path $path
+        } -ArgumentList $RemoteFilePath -ErrorAction Stop
+
+        if ($exists -eq $true) {
+            $line = "{0} - Fichier trouvé sur {1} : {2}" -f (Get-Date), $server, $RemoteFilePath
+            $line | Out-File -FilePath $LogPath -Append -Encoding UTF8
+            Write-Host "  -> Fichier trouvé" -ForegroundColor Green
+        } else {
+            Write-Host "  -> Fichier non trouvé" -ForegroundColor Yellow
+        }
+    }
+    catch {
+        $line = "{0} - Erreur de connexion à {1} : {2}" -f (Get-Date), $server, $_.Exception.Message
+        $line | Out-File -FilePath $LogPath -Append -Encoding UTF8
+        Write-Host "  -> Erreur de connexion" -ForegroundColor Red
+    }
+}
