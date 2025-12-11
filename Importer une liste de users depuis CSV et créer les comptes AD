@@ -1,0 +1,52 @@
+Principe
+
+Fichier CSV avec les colonnes (exemple) :
+
+SamAccountName, GivenName, Surname, DisplayName, OU, Password
+
+On lit le CSV
+
+On crée chaque user avec New-ADUser (module ActiveDirectory requis)
+toutes nos formations sur https://itfit.tech
+
+Exemple
+SamAccountName,GivenName,Surname,DisplayName,OU,Password
+jdupont,Jean,Dupont,Jean Dupont,"OU=Users,OU=Paris,DC=adatum,DC=local","P@ssw0rd123!"
+mdupond,Marie,Dupond,Marie Dupond,"OU=Users,OU=LON,DC=adatum,DC=local","P@ssw0rd123!"
+
+
+Script : Create-ADUsersFromCsv.ps1
+
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$CsvPath              # ex: .\users.csv
+)
+
+Import-Module ActiveDirectory
+
+$users = Import-Csv -Path $CsvPath
+
+foreach ($user in $users) {
+    Write-Host "Création de l'utilisateur $($user.SamAccountName)..."
+
+    try {
+        $securePassword = ConvertTo-SecureString $user.Password -AsPlainText -Force
+
+        New-ADUser `
+            -SamAccountName  $user.SamAccountName `
+            -UserPrincipalName ("{0}@adatum.local" -f $user.SamAccountName) `
+            -GivenName       $user.GivenName `
+            -Surname         $user.Surname `
+            -Name            $user.DisplayName `
+            -DisplayName     $user.DisplayName `
+            -Path            $user.OU `
+            -AccountPassword $securePassword `
+            -Enabled         $true `
+            -ChangePasswordAtLogon $true
+
+        Write-Host "  -> OK" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "  -> Erreur : $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
