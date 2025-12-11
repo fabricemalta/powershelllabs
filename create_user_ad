@@ -1,0 +1,25 @@
+Voici un exercice en PowerShell qui utilise les modules Active Directory et Network, ainsi que l'utilisation de pipelines. Cet exercice vous permettra de pratiquer des commandes courantes tout en explorant les fonctionnalités des modules mentionnés.
+
+Exercice : Gestion des utilisateurs et vérification réseau
+Objectif :
+Créer un utilisateur dans Active Directory.
+Vérifier les informations réseau des serveurs.
+Filtrer les résultats avec des pipelines.
+Étapes de l'exercice :
+1. Chargement des modules
+Assurez-vous que les modules Active Directory et Network sont installés et importés :
+
+Import-Module ActiveDirectory
+Import-Module NetAdapter
+
+2. Création d'un utilisateur dans Active Directory
+Créez un utilisateur dans le domaine avec les informations suivantes :
+
+Nom : John Doe
+Nom d'utilisateur : jdoe
+Unité organisationnelle : OU=Users,DC=lon-dc1,DC=local
+Commande :
+New-ADUser -Name "John Doe" -SamAccountName "jdoe" -UserPrincipalName "jdoe@lon-dc1.local" -Path "OU=Users,DC=lon-dc1,DC=local" -AccountPassword (ConvertTo-SecureString "P@ssw0rd!" -AsPlainText -Force) -Enabled $true
+
+3. Lister les utilisateurs dans une unité organisationnelle
+Utilisez un pipeline pour afficher uniquement les utilisateurs activés dans l'OU Users :
