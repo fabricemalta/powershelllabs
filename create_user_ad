@@ -23,3 +23,10 @@ New-ADUser -Name "John Doe" -SamAccountName "jdoe" -UserPrincipalName "jdoe@lon-
 
 3. Lister les utilisateurs dans une unité organisationnelle
 Utilisez un pipeline pour afficher uniquement les utilisateurs activés dans l'OU Users :
+
+# Ajout d'un groupe Active Directory nommé "formation_powershell"
+New-ADGroup -Name "formation_powershell" -SamAccountName "formation_powershell" -GroupScope Global -GroupCategory Security -Path "OU=Groups,DC=lon-dc1,DC=local"
+
+# Ajout de l'utilisateur "jdoe" au groupe "formation_powershell"
+Add-ADGroupMember -Identity "formation_powershell" -Members "jdoe"
+
