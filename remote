@@ -1,0 +1,241 @@
+REMOTE ADMINISTRATION WITH POWERSHELL (VERSION GITHUB – FRANÇAIS)
+
+👉 Formations PowerShell, Azure, M365 : https://itfit.tech
+
+👉 Automatisation & Sécurité : https://itfit.tech
+
+# Administration à distance avec PowerShell  
+👉 Formez-vous au PowerShell, Azure, M365 : https://itfit.tech  
+
+---
+
+# 🧪 Exercice 1 : Activer le remoting PowerShell sur l’ordinateur local
+
+## 🎯 Tâche 1 : Activer le remoting
+
+1. Connectez-vous à **LAB-WS01** avec :  
+   **itfit\Administrator**  
+
+2. Ouvrir PowerShell en administrateur.
+
+3. Définir la stratégie d’exécution :
+
+```powershell
+Set-ExecutionPolicy RemoteSigned
+
+
+Entrer Y pour valider.
+
+Activer le remoting :
+
+Enable-PSRemoting -SkipNetworkProfileCheck
+
+
+Trouver une commande listant les configurations de session :
+
+help *sessionconfiguration*
+
+
+Lister les configurations existantes :
+
+Get-PSSessionConfiguration
+
+🧪 Exercice 2 : Remoting “one-to-one”
+🎯 Tâche 1 : Se connecter à un serveur distant & installer un rôle
+
+Établir une session vers LAB-DC01 :
+
+Enter-PSSession -ComputerName LAB-DC01
+
+
+Installer le rôle Network Load Balancing :
+
+Install-WindowsFeature NLB
+
+
+Quitter la session :
+
+Exit-PSSession
+
+🎯 Tâche 2 : Tester le multi-hop (limitation par défaut)
+
+Se connecter à LAB-DC01 :
+
+Enter-PSSession -ComputerName LAB-DC01
+
+
+Depuis LAB-DC01, essayer de se connecter à LAB-WS01 :
+
+Enter-PSSession -ComputerName LAB-WS01
+
+
+⚠️ Un message d’erreur doit apparaître (multi-hop non autorisé par défaut).
+
+Quitter :
+
+Exit-PSSession
+
+🎯 Tâche 3 : Observer les limites du remoting
+
+Connexion locale via remoting :
+
+Enter-PSSession -ComputerName localhost
+
+
+Essayer d’exécuter une application graphique :
+
+Notepad
+
+
+⚠️ Notepad ne s’affiche pas : les GUI ne sont pas transmises dans une session distante.
+
+Interrompre avec Ctrl + C.
+
+Quitter :
+
+Exit-PSSession
+
+🧪 Exercice 3 : Remoting “one-to-many”
+🎯 Tâche 1 : Lister les cartes réseau physiques de plusieurs machines
+
+Chercher une commande liée aux adaptateurs :
+
+help *adapter*
+
+
+Consulter l’aide :
+
+help Get-NetAdapter
+
+
+Lancer la commande sur LAB-WS01 et LAB-DC01 :
+
+Invoke-Command -ComputerName LAB-WS01,LAB-DC01 -ScriptBlock { Get-NetAdapter -Physical }
+
+🎯 Tâche 2 : Comparer sortie locale vs distante
+
+Members d’un process local :
+
+Get-Process | Get-Member
+
+
+Members d’un process récupéré en remoting :
+
+Invoke-Command -ComputerName LAB-DC01 -ScriptBlock { Get-Process } | Get-Member
+
+
+⚠️ La sortie distante est désérialisée, donc moins riche.
+
+🧪 Exercice 4 : Implicit remoting
+🎯 Tâche 1 : Créer une connexion persistante
+
+Créer une session persistante vers LAB-DC01 :
+
+$dc = New-PSSession -ComputerName LAB-DC01
+
+
+Afficher la session :
+
+$dc
+
+🎯 Tâche 2 : Importer un module distant
+
+Lister les modules disponibles sur LAB-DC01 :
+
+Get-Module -ListAvailable -PSSession $dc
+
+
+Chercher un module SMB :
+
+Get-Module -ListAvailable -PSSession $dc | Where { $_.Name -like "*share*" }
+
+
+Importer le module avec un préfixe :
+
+Import-Module -PSSession $dc -Name SMBShare -Prefix DC
+
+
+Afficher les partages de LAB-DC01 :
+
+Get-DCSMBShare
+
+
+Afficher les partages locaux :
+
+Get-SMBShare
+
+🎯 Tâche 3 : Fermer toutes les sessions remoting
+Get-PSSession | Remove-PSSession
+
+
+Vérifier que plus aucune session n’est ouverte :
+
+Get-PSSession
+
+🧪 Exercice 5 : Gérer plusieurs ordinateurs
+🎯 Tâche 1 : Créer plusieurs sessions simultanées
+
+Créer des sessions vers LAB-WS01 et LAB-DC01 :
+
+$computers = New-PSSession -ComputerName LAB-WS01,LAB-DC01
+
+
+Vérifier :
+
+$computers
+
+🎯 Tâche 2 : Rapport des règles Firewall de deux machines
+
+Trouver un module “sécurité” :
+
+Get-Module *security* -ListAvailable
+
+
+Charger le module sur les deux machines :
+
+Invoke-Command -Session $computers -ScriptBlock { Import-Module NetSecurity }
+
+
+Lister les commandes du module :
+
+Get-Command -Module NetSecurity
+
+
+Afficher les règles Firewall activées :
+
+Invoke-Command -Session $computers -ScriptBlock { Get-NetFirewallRule -Enabled True } |
+Select Name,PSComputerName
+
+
+Décharger le module :
+
+Invoke-Command -Session $computers -ScriptBlock { Remove-Module NetSecurity }
+
+🎯 Tâche 3 : Rapport HTML – disques locaux
+
+Localement :
+
+Get-WmiObject -Class Win32_LogicalDisk -Filter "DriveType=3"
+
+
+À distance (sur deux machines) :
+
+Invoke-Command -Session $computers -ScriptBlock {
+    Get-WmiObject -Class Win32_LogicalDisk -Filter "DriveType=3"
+}
+
+
+Générer un rapport HTML :
+
+Invoke-Command -Session $computers -ScriptBlock {
+    Get-WmiObject -Class Win32_LogicalDisk -Filter "DriveType=3"
+} | ConvertTo-Html -Property PSComputerName,DeviceID,FreeSpace,Size
+
+🎯 Tâche 4 : Fermer toutes les sessions
+Get-PSSession | Remove-PSSession
+
+📘 Ressources recommandées
+
+➡ Comprendre PowerShell & Remoting : https://itfit.tech
+
+➡ Formations administrateur moderne (Azure, M365, ADDS, Intune) : https://itfit.tech
