@@ -1,1 +1,120 @@
+Structure générale d'une fonction PowerShell
+function Nom-Fonction {
+    param(
+        [type]$param1,
+        [type]$param2
+    )
+
+    # Code ici
+    # return si nécessaire
+}
+
+
+Exemple 1 : Fonction qui dit bonjour
+function Say-Hello {
+    param (
+        [string]$Name
+    )
+
+    Write-Host "Bonjour $Name ! Bienvenue dans PowerShell."
+}
+
+# Appel de la fonction
+Say-Hello -Name "Fabrice"
+
+
+Exemple 2 : Fonction qui additionne deux nombres
+function Add-Numbers {
+    param(
+        [int]$A,
+        [int]$B
+    )
+
+    $result = $A + $B
+    return $result
+}
+
+# Appel
+$sum = Add-Numbers -A 5 -B 7
+Write-Host "Le résultat est : $sum"
+
+Exemple 3 : Fonction avec test + message
+function Test-ConnectionSimple {
+    param(
+        [string]$ComputerName
+    )
+
+    if (Test-Connection -ComputerName $ComputerName -Count 1 -Quiet) {
+        Write-Host "$ComputerName est accessible."
+    } else {
+        Write-Host "$ComputerName ne répond pas."
+    }
+}
+
+# Appel
+Test-ConnectionSimple -ComputerName "google.com"
+
+Lire les 10 derniers événements du System Log
+function Get-SystemEvents {
+    Write-Host "Lecture des 10 derniers événements du journal SYSTEM..." -ForegroundColor Cyan
+    
+    Get-EventLog -LogName System -Newest 10
+}
+
+# Appel
+Get-SystemEvents
+
+Filtrer les erreurs dans le Application Log
+function Get-AppErrors {
+    Write-Host "Recherche des erreurs dans Application..." -ForegroundColor Yellow
+    
+    Get-EventLog -LogName Application -EntryType Error -Newest 20
+}
+
+# Appel
+Get-AppErrors
+
+Fonction paramétrée — filtrer par EventID
+function Get-EventById {
+    param(
+        [string]$LogName,
+        [int]$EventID
+    )
+
+    Write-Host "Recherche EventID $EventID dans le log $LogName" -ForegroundColor Green
+
+    Get-EventLog -LogName $LogName -InstanceId $EventID -Newest 50
+}
+
+# Appel
+Get-EventById -LogName "System" -EventID 6008
+
+Version moderne — Lire les logs avec Get-WinEvent
+
+Plus puissant, recommandé sur Windows 10/11.
+
+function Get-SecurityEvents {
+    Write-Host "Lecture des derniers événements de sécurité..." -ForegroundColor Cyan
+
+    Get-WinEvent -LogName "Security" -MaxEvents 20
+}
+# Appel
+Get-SecurityEvents
+
+Chercher les échecs de connexion (EventID 4625)
+
+Très utile en sécurité.
+
+function Get-FailedLogons {
+    Write-Host "Analyse des échecs de connexion (4625)..." -ForegroundColor Red
+
+    Get-WinEvent -FilterHashtable @{
+        LogName = 'Security'
+        Id      = 4625
+    } -MaxEvents 50 |
+    Select-Object TimeCreated, Id, Message
+}
+
+# Appel
+Get-FailedLogons
 
