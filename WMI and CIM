@@ -1,0 +1,168 @@
+➡ Vidéos et labs avancés : https://itfit.tech
+# Labs PowerShell – WMI, CIM et Invocation de Méthodes  
+👉 Formations IT complètes : https://itfit.tech  
+👉 Apprenez PowerShell, Azure, M365, AD, Automatisation : https://itfit.tech  
+
+---
+
+## 🧪 Exercice 1 : Interroger des informations avec WMI
+
+### 🎯 Tâche 1 : Interroger les adresses IP
+
+1. Sur **LON-CL1**, ouvrir *Windows PowerShell* en mode administrateur.  
+2. Pour rechercher une classe WMI listant les adresses IP :
+
+```powershell
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*configuration*' | Sort Name
+📌 Remarquez la classe Win32_NetworkAdapterConfiguration.
+
+Pour afficher toutes les interfaces configurées en IP statique :
+
+powershell
+ 
+Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Where DHCPEnabled -eq $False | Select IPAddress
+💡 Astuce : Vous pouvez utiliser Get-Member pour voir les propriétés disponibles.
+
+🎯 Tâche 2 : Interroger la version du système d’exploitation
+Trouver une classe WMI contenant les infos OS :
+
+powershell
+ 
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*operating*' | Sort Name
+📌 Classe identifiée : Win32_OperatingSystem
+
+Afficher les propriétés de la classe :
+
+powershell
+ 
+Get-WmiObject -Class Win32_OperatingSystem | Get-Member
+Afficher version + service pack + numéro de build :
+
+powershell
+ 
+Get-WmiObject -Class Win32_OperatingSystem | Select Version,ServicePackMajorVersion,BuildNumber
+🎯 Tâche 3 : Interroger les informations matérielles du système
+Rechercher une classe système :
+
+powershell
+ 
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*system*' | Sort Name
+📌 Classe identifiée : Win32_ComputerSystem
+
+Afficher toutes les propriétés :
+
+powershell
+ 
+Get-WmiObject -Class Win32_ComputerSystem | Format-List -Property *
+Afficher fabricant + modèle + RAM :
+
+powershell
+ 
+Get-WmiObject -Class Win32_ComputerSystem | Select Manufacturer,Model,@{n='RAM';e={$PSItem.TotalPhysicalMemory}}
+🎯 Tâche 4 : Interroger les services
+Trouver une classe listant les services :
+
+powershell
+ 
+Get-WmiObject -Namespace root\cimv2 -List | Where Name -like '*service*' | Sort Name
+📌 Classe identifiée : Win32_Service
+
+Lister toutes les propriétés des services :
+
+powershell
+ 
+Get-WmiObject -Class Win32_Service | FL *
+Lister les services commençant par "S" :
+
+powershell
+ 
+Get-WmiObject -Class Win32_Service -Filter "Name LIKE 'S%'" | Select Name,State,StartName
+🧪 Exercice 2 : Interroger des informations avec CIM
+👉 Formez-vous en PowerShell : https://itfit.tech
+
+🎯 Tâche 1 : Interroger les comptes utilisateurs
+Trouver une classe listant les comptes :
+
+powershell
+ 
+Get-CimClass -ClassName *user*
+📌 Classe : Win32_UserAccount
+
+Voir les propriétés de la classe :
+
+powershell
+ 
+Get-CimInstance -Class Win32_UserAccount | Get-Member
+Afficher les infos des comptes :
+
+powershell
+ 
+Get-CimInstance -Class Win32_UserAccount | Format-Table Caption,Domain,SID,FullName,Name
+🎯 Tâche 2 : Interroger les informations du BIOS
+Trouver une classe BIOS :
+
+powershell
+ 
+Get-CimClass -ClassName *bios*
+📌 Classe : Win32_BIOS
+
+Afficher les infos BIOS :
+
+powershell
+ 
+Get-CimInstance -Class Win32_BIOS
+🎯 Tâche 3 : Interroger la configuration des cartes réseau
+Sur la machine locale :
+
+powershell
+ 
+Get-CimInstance -Classname Win32_NetworkAdapterConfiguration
+Sur LON-DC1 :
+
+powershell
+ 
+Get-CimInstance -Classname Win32_NetworkAdapterConfiguration -ComputerName LON-DC1
+🎯 Tâche 4 : Interroger les groupes utilisateurs
+Trouver une classe listant les groupes :
+
+powershell
+ 
+Get-CimClass -ClassName *group*
+📌 Classe : Win32_Group
+
+Afficher les groupes de LON-DC1 :
+
+powershell
+ 
+Get-CimInstance -ClassName Win32_Group -ComputerName LON-DC1
+🧪 Exercice 3 : Invocation de méthodes WMI & CIM
+Découvrez d’autres labs : https://itfit.tech
+
+🎯 Tâche 1 : Redémarrer un serveur via CIM
+powershell
+ 
+Invoke-CimMethod -ClassName Win32_OperatingSystem -ComputerName LON-DC1 -MethodName Reboot
+📌 Retour attendu : ReturnValue = 0
+
+🎯 Tâche 2 : Modifier un service via WMI
+Voir les propriétés du service WinRM :
+
+powershell
+ 
+Get-Service WinRM | FL *
+Changer son mode de démarrage :
+
+powershell
+ 
+Get-WmiObject -Class Win32_Service -Filter "Name='WinRM'" | Invoke-WmiMethod -Name ChangeStartMode -Argument 'Automatic'
+Vérifier :
+
+powershell
+ 
+Get-Service WinRM | FL *
+🔁 Le service devrait maintenant être en Automatic.
+
+📚 Ressources complémentaires
+➡ Formations complètes PowerShell, Azure, M365 : https://itfit.tech
+➡ Vidéos et labs avancés : https://itfit.tech
+
