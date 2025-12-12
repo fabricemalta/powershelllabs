@@ -1,0 +1,41 @@
+Connect-AzAccount -tenantid 4333438a-815c-44ab-bb1d-d293a34231ca
+Get-AzResourceGroup
+
+New-AzResourceGroup -name az_demo_vm1 -Location 'West Europe'
+
+$cred = Get-Credential -Message "Enter the password for the Azure VM."
+
+
+$vmParams = @{
+  ResourceGroupName = 'az_demo_vm1'
+  Name = 'TestVM1'
+  Location = 'westeurope'
+  ImageName = 'Win2019Datacenter'
+  PublicIpAddressName = 'TestPublicIp'
+  Credential = $cred
+  OpenPorts = 3389
+}
+
+
+$newvm1 = New-AzVM @vmParams
+$newvm1.OSProfile.ComputerName
+$newVM1.OSProfile | Select-Object ComputerName,AdminUserName
+
+$newvm1 | Get-AzNetworkInterface | select IpConfigurations |  Select-Object Name,PrivateIpAddress
+get-azvm 
+
+$rgName = $NewVM1.ResourceGroupName
+
+$publicIp = Get-AzPublicIpAddress -Name TestPublicIp -ResourceGroupName $rgName
+
+$VirtualMachine = Get-AzVM -ResourceGroupName "az_demo_vm1" -Name "TestVM1"
+
+Add-AzVMDataDisk -VM $VirtualMachine -Name "disk1" -LUN 0 -Caching ReadOnly -DiskSizeinGB 1 -CreateOption Empty
+
+Update-AzVM -ResourceGroupName "az_demo_vm1" -VM $VirtualMachine
+
+
+
+ Remove-AzResourceGroup -name $rgName -force
+
+ 
