@@ -1,0 +1,52 @@
+Install-Module Microsoft.Graph -Scope CurrentUser
+Connect-MgGraph -Scopes "User.ReadWrite.All", "Application.ReadWrite.All", "Sites.ReadWrite.All", "Directory.ReadWrite.All", "Group.ReadWrite.All", "RoleManagement.ReadWrite.Directory"
+
+Get-MgUser
+
+
+$verifiedDomain = (Get-MgOrganization).VerifiedDomains[0].Name
+
+
+$PasswordProfile = @{  
+ "Password"="TheBestTeam01!";  
+ "ForceChangePasswordNextSignIn"=$true  
+}  
+
+
+New-MgUser -DisplayName "Noreen Riggs" -UserPrincipalName "Noreen@$verifiedDomain" -AccountEnabled -PasswordProfile $PasswordProfile -MailNickName "Noreen"
+$user = Get-MgUser -UserId "Noreen@$verifiedDomain"
+$role = Get-MgDirectoryRole | Where {$_.displayName -eq 'Global Administrator'}
+
+
+$OdataId = "https://graph.microsoft.com/v1.0/directoryObjects/" + $user.id  
+
+
+New-MgDirectoryRoleMemberByRef -DirectoryRoleId $role.id -OdataId $OdataId  
+
+Get-MgDirectoryRoleMember -DirectoryRoleId $role.id
+
+
+New-MgUser -DisplayName "Allan Yoo" -UserPrincipalName Allan@$verifiedDomain -AccountEnabled -PasswordProfile $PasswordProfile -MailNickName "Allan"
+
+
+Update-MgUser -UserId Allan@$verifiedDomain -UsageLocation US
+
+Get-MgSubscribedSku |select SkuPartNumber 
+
+$SkuId = (Get-MgSubscribedSku | Where-Object { $_.SkuPartNumber -eq "DEVELOPERPACK_E5" }).SkuId
+
+Set-MgUserLicense -UserId Allan@$verifiedDomain -AddLicenses @{SkuId = $SkuId} -RemoveLicenses @()
+
+
+Get-MgGroup
+
+New-MgGroup -DisplayName "Sales Security Group" -MailEnabled:$False  -MailNickName "SalesSecurityGroup" -SecurityEnabled
+
+$group = Get-MgGroup -ConsistencyLevel eventual -Count groupCount -Search '"DisplayName:Sales Security"'
+
+$user = Get-MgUser -UserId Allan@$verifiedDomain
+
+
+New-MgGroupMember -GroupId $group.id -DirectoryObjectId $user.id
+
+Get-MgGroupMember -GroupId $group.id
