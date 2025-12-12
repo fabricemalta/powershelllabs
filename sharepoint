@@ -1,0 +1,14 @@
+Install-Module -Name Microsoft.Online.SharePoint.PowerShell -Scope CurrentUser
+import-module Microsoft.Online.SharePoint.PowerShell
+$verifiedDomainShort = $verifiedDomain.Split(".")[0]
+
+Connect-SPOService -Url "https://cloudrock2021-admin.sharepoint.com" -Credential fabrice@cloudrock2021.onmicrosoft.com
+
+Get-SPOSite
+Get-SPOWebTemplate
+
+New-SPOSite -Url https://cloudrock2021.sharepoint.com/sites/Sales -Owner noreen@cloudrock2021.onmicrosoft.com -StorageQuota 256 -Template EHS#1 -NoWait
+
+Get-SPOSite | FL Url,Status
+
+Disconnect-SPOService
